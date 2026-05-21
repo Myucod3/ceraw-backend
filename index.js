@@ -5,7 +5,18 @@ import cors from "cors";
 import express from "express";
 import pool from "./db.js";
 
+import http from "http";
+import { Server } from "socket.io"
+
 const app = express();
+
+const server = http.createServer(app);
+
+const io = new Server(server, {
+    cors: {
+        origin: "*"
+    }
+});
 
 app.use(express.json());
 app.use(cors());
@@ -37,10 +48,18 @@ app.post("/drawings", upload.single("image"), async (req, res) => {
     const url = `${process.env.R2_PUBLIC_URL}/${key}`;
     await pool.query("INSERT INTO drawings (url) VALUES ($1)", [url]);
 
-    res.json({ url });
+    const drawing = { url };
+    
+    io.emit("new-post",drawing);
+
+    res.json(drawing);
 })
 
-app.listen(3000, async () => {
+io.on("connection", socket => {
+    console.log("user connected");
+});
+
+server.listen(3000, async () => {
     const client = await pool.connect();
     console.log("БД подключена");
     client.release();
