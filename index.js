@@ -46,7 +46,7 @@ app.post("/drawings", upload.single("image"), async (req, res) => {
     }));
 
     const url = `${process.env.R2_PUBLIC_URL}/${key}`;
-    await pool.query("INSERT INTO drawings (url) VALUES ($1)", [url]);
+    await pool.query("INSERT INTO drawings (url) VALUES ($1, $2)", [userId, url]);
 
     const drawing = { url };
     
